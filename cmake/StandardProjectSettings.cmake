@@ -17,26 +17,7 @@ endif()
 # Generate compile_commands.json to make it easier to work with clang based tools
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(ENABLE_IPO "Enable Interprocedural Optimization, aka Link Time Optimization (LTO)" OFF)
-
-if(ENABLE_IPO)
-  include(CheckIPOSupported)
-  check_ipo_supported(
-    RESULT
-    result
-    OUTPUT
-    output)
-  if(result)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-  else()
-    message(SEND_ERROR "IPO is not supported: ${output}")
-  endif()
-endif()
-if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
-  add_compile_options(-fcolor-diagnostics)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  add_compile_options(-fdiagnostics-color=always)
-else()
-  message(STATUS "No colored compiler diagnostic set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
-endif()
-
+# Link this 'library' to set the c++ standard / compile-time options requested
+add_library(project_options INTERFACE)
+target_compile_features(project_options INTERFACE cxx_std_${CMAKE_CXX_STANDARD})
+add_library(project_warnings INTERFACE)
