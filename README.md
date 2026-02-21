@@ -1,4 +1,5 @@
-# OpenGL with GLAD and GLFW - Journey through Gmae Programming
+# Journey through Gmae Programming
+## OpenGL with GLAD and GLFW
 
 ## About
 
