@@ -96,9 +96,10 @@ int main()
     char const* fragmentShaderSource =
         "#version 430 core\n"
         "out vec4 FragColor;\n"
+        "uniform vec4 ourColor;\n"
         "void main()\n"
         "{\n"
-        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "   FragColor = ourColor;\n"
         "}\0";
 
     uint32_t fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -153,7 +154,7 @@ int main()
 
     uint32_t indices[] = {
         0, 1, 3, // first triangle
-        1, 2, 3 // second triangle
+        // 1, 2, 3 // second triangle
     };
 
     // Vertex Array Object
@@ -202,6 +203,13 @@ int main()
 
         // draw first triangle
         glUseProgram(shaderProgram);
+
+        // update uniform color
+        float timeValue = static_cast<float>(glfwGetTime());
+        float greenValue = (static_cast<float>(sin(timeValue)) / 2.0F) + 0.5F;
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUniform4f(vertexColorLocation, 0.0F, greenValue, 0.0F, 1.0F);
+
         glBindVertexArray(VAO);
         // glDrawArrays(GL_TRIANGLES, 0, 3);
         // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -217,6 +225,7 @@ int main()
     // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
     glDeleteProgram(shaderProgram);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
