@@ -5,14 +5,17 @@
 
 #include "spdlog/spdlog.h"
 
+#include "glDebug.h"
+
 constexpr int const WIDTH = 640;
 constexpr int const HEIGHT = 480;
+constexpr char const* const WINDOW_NAME = "opengl_experiment";
 
 namespace {
 
 void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height)
 {
-    spdlog::info("new framebuffer size [{0} x {1}]", width, height);
+    spdlog::info("framebuffer size [{0} x {1}]", width, height);
     glViewport(0, 0, width, height);
 }
 
@@ -43,7 +46,7 @@ int main()
 
     // GLFW: Create Window
     // -------------------
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "[glad] GL with GLFW", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, WINDOW_NAME, nullptr, nullptr);
     if (window == nullptr)
     {
         spdlog::error("Failed create window!");
@@ -52,7 +55,6 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
-    // glViewport(0, 0, WIDTH, HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
     // glad: load all OpenGL function pointers
@@ -64,7 +66,18 @@ int main()
         return -1;
     }
 
-    spdlog::info("Loaded GL {0}.{1}", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+    spdlog::info("GL v{0}.{1}", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+
+    int32_t flags = 0;
+    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(glDebugOutput, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    }
+
 
     // build and compile shader program
     // --------------------------------
@@ -154,7 +167,7 @@ int main()
 
     uint32_t indices[] = {
         0, 1, 3, // first triangle
-        // 1, 2, 3 // second triangle
+        1, 2, 3 // second triangle
     };
 
     // Vertex Array Object
@@ -169,7 +182,8 @@ int main()
     uint32_t EBO = 0;
     glGenBuffers(1, &EBO);
 
-    // 1. bind Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+    // 1. bind Vertex Array Object first, then bind and set vertex buffer(s), and then
+    //    configure vertex attributes(s).
     glBindVertexArray(VAO);
 
     // 2. copy our vertices array in a buffer for OpenGL to use
@@ -184,7 +198,8 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
 
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+    // note that this is allowed, the call to glVertexAttribPointer registered VBO
+    // as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
@@ -211,9 +226,14 @@ int main()
         glUniform4f(vertexColorLocation, 0.0F, greenValue, 0.0F, 1.0F);
 
         glBindVertexArray(VAO);
+
+        // #1 option - Draw Triangle
         // glDrawArrays(GL_TRIANGLES, 0, 3);
-        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+        // #2 option - Draw 2 Triangles  as a square
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
         glBindVertexArray(0);
 
         // glfw: swap buffers and poll IO events (key pressed/released, mouse moved etc.)
