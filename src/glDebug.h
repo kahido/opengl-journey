@@ -1,3 +1,6 @@
+
+#pragma once
+
 #define GLFW_INCLUDE_NONE
 #include <glad/gl.h>
 // GLFW (include after glad)

@@ -1,3 +1,4 @@
+
 #define GLFW_INCLUDE_NONE
 #include <glad/gl.h>
 // GLFW (include after glad)
@@ -5,6 +6,7 @@
 
 #include "spdlog/spdlog.h"
 
+#include "shader.h"
 #include "glDebug.h"
 
 constexpr int const WIDTH = 640;
@@ -83,7 +85,7 @@ int main()
     // --------------------------------
     // vertex shader
     char const* vertexShaderSource =
-        "#version 430 core\n"
+        "#version 460 core\n"
         "layout (location = 0) in vec3 aPos;\n"
         "void main()\n"
         "{\n"
@@ -107,7 +109,7 @@ int main()
 
     // fragment shader
     char const* fragmentShaderSource =
-        "#version 430 core\n"
+        "#version 460 core\n"
         "out vec4 FragColor;\n"
         "uniform vec4 ourColor;\n"
         "void main()\n"
@@ -205,6 +207,13 @@ int main()
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
+
+
+    Shader shader;
+
+    shader.loadShaderProgramFromFile("myshader.vert", "resources/myshader.frag");
+
+    shader.bind();
 
     // render loop
     // -----------
