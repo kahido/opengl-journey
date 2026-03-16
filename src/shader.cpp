@@ -20,16 +20,19 @@ char const* readEntireFile(char const* source)
         return nullptr;
     }
 
+    file.seekg(0, std::ios::end);
+
     auto fileSize = file.tellg();
 
-    auto buffer = std::string{};
-    buffer.reserve(static_cast<std::size_t>(fileSize));
-
     file.seekg(0, std::ios::beg);
-    file.read(buffer.data(), fileSize);
+
+    char* fileContent = new char[static_cast<std::size_t>(fileSize) + 1]{};
+
+    file.read(fileContent, fileSize);
+
     file.close();
 
-    return buffer.c_str();
+    return fileContent;
 }
 
 GLuint createShaderFromData(char const* data, GLenum shaderType)
