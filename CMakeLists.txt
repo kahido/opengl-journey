@@ -29,9 +29,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 include(cmake/PreventInSourceBuilds.cmake)
 include(cmake/StandardProjectSettings.cmake)
 include(cmake/ProjectOptions.cmake)
-
 include(cmake/Dependencies.cmake)
-setup_dependencies()
 
 add_subdirectory(src)
 
@@ -45,6 +43,8 @@ add_custom_target(
   COMMENT "Copying resources into binary directory")
 
 add_dependencies(${PROJECT_NAME} copy_resources)
+
+option(ENABLE_TESTING "Enable Test Builds" OFF)
 
 if(ENABLE_TESTING)
   enable_testing()

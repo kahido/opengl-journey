@@ -37,3 +37,5 @@ function(setup_dependencies)
   #target_link_libraries(my_target PRIVATE glad_gl_core_43)
 
 endfunction()
+
+setup_dependencies()
