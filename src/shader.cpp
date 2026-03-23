@@ -163,3 +163,15 @@ void Shader::clear()
 {
     glDeleteProgram(m_id);
 }
+
+GLint Shader::getUniformLocation(char const* name)
+{
+    GLint rez = glGetUniformLocation(m_id, name);
+
+    if (rez == -1)
+    {
+        spdlog::error("ERROR::SHADER::UNIFORM [name = {0}]", name);
+    }
+
+    return rez;
+}

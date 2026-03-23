@@ -9,7 +9,7 @@ out vec3 v_position;
 void main()
 {
     gl_Position = vec4(in_position, 1);
-    gl_Position.xyz *= 0.8;
+    // gl_Position.xyz *= 0.8;
 
     v_color = in_color;
     v_position = in_position;

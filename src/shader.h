@@ -13,4 +13,6 @@ struct Shader
     void bind();
 
     void clear();
+
+    GLint getUniformLocation(char const* name);
 };

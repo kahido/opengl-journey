@@ -30,6 +30,22 @@ void processInput(GLFWwindow* window)
     }
 }
 
+// setup vertex data (and buffer(s)) and configure vertex attributes
+// -----------------------------------------------------------------
+float vertices[] = {
+ // positions       colors
+ // x y z           r  g  b
+    0.5, 0.5, 0,    1, 0, 0, // vertex 1
+   -0.5, 0.5, 0,    0, 1, 0, // vertex 2
+   -0.5, -0.5, 0,   0, 0, 1, // vertex 3
+    0.5, -0.5, 0,   0, 0, 1, // vertex 4
+};
+
+unsigned short indices[] = {
+    0, 1, 2, // first triangle
+    0, 2, 3  // second triangle
+};
+
 }
 
 int main()
@@ -83,29 +99,10 @@ int main()
     Shader shader;
 
     shader.loadShaderProgramFromFile("resources/myshader.vert", "resources/myshader.frag");
+
+    GLint u_time = shader.getUniformLocation("u_time");
+
     shader.bind();
-
-    // setup vertex data (and buffer(s)) and configure vertex attributes
-    // -----------------------------------------------------------------
-    [[maybe_unused]] float vertices[] = {
-     // positions   colors
-     // x  y  z     r  g  b
-        0, 1, 0,    1, 0, 0, //vertex 1
-        -1, -1, 0,  0, 1, 0, //vertex 2
-        1, -1, 0,   0, 0, 1, //vertex 3
-    };
-
-    // [[maybe_unused]] float vertices[] = {
-    //     0.5F, 0.5F, 0.0F, // top right
-    //     0.5F, -0.5F, 0.0F, // bottom right
-    //     -0.5F, -0.5F, 0.0F, // bottom left
-    //     -0.5F, 0.5F, 0.0F, // top left
-    // };
-
-    uint32_t indices[] = {
-        0, 1, 2, // first triangle
-        // 1, 2, 3  // second triangle
-    };
 
     // Vertex Array Object
     uint32_t VAO = 0;
@@ -159,6 +156,11 @@ int main()
         // draw first triangle
         // glUseProgram(shaderProgram);
 
+        float timeValue = static_cast<float>(glfwGetTime()) * 10;
+        // spdlog::info("timeValue {0}", timeValue);
+
+        glUniform1f(u_time, timeValue);
+
         // update uniform color
         // float timeValue = static_cast<float>(glfwGetTime());
         // float greenValue = (static_cast<float>(sin(timeValue)) / 2.0F) + 0.5F;
@@ -168,11 +170,11 @@ int main()
         glBindVertexArray(VAO);
 
         // #1 option - Draw Triangle
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // #2 option - Draw 2 Triangles  as a square
-        // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
         glBindVertexArray(0);
 
