@@ -1,5 +1,4 @@
 option(BUILD_SHARED_LIBS "Enable compilation of shared libraries" OFF)
-option(ENABLE_TESTING "Enable Test Builds" OFF)
 option(ENABLE_IPO "Enable Interprocedural Optimization, aka Link Time Optimization (LTO)" OFF)
 option(ENABLE_PCH "Enable Precompiled Headers" OFF)
 
