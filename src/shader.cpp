@@ -2,7 +2,6 @@
 #include "shader.h"
 
 #include <fstream>
-#include <string>
 #include <vector>
 
 #include "spdlog/spdlog.h"
@@ -10,14 +9,14 @@
 namespace
 {
 
-char const* readEntireFile(char const* source)
+std::string readEntireFile(char const* source)
 {
     std::ifstream file(source, std::ios::in);
 
     if (!file.is_open())
     {
         spdlog::error("Failed to open file! [{}]", source);
-        return nullptr;
+        return {};
     }
 
     file.seekg(0, std::ios::end);
@@ -26,19 +25,23 @@ char const* readEntireFile(char const* source)
 
     file.seekg(0, std::ios::beg);
 
-    char* fileContent = new char[static_cast<std::size_t>(fileSize) + 1]{};
+    auto fileContent = std::string{};
+    fileContent.resize(static_cast<std::size_t>(fileSize));
 
-    file.read(fileContent, fileSize);
+    file.read(&fileContent[0], fileSize);
 
     file.close();
 
     return fileContent;
 }
 
-GLuint createShaderFromData(char const* data, GLenum shaderType)
+GLuint createShaderFromData(std::string const& data, GLenum shaderType)
 {
     GLuint shaderId = glCreateShader(shaderType);
-    glShaderSource(shaderId, 1, &data, nullptr);
+
+    char const* shaderSource = data.data();
+
+    glShaderSource(shaderId, 1, &shaderSource, nullptr);
     glCompileShader(shaderId);
 
     GLint result = 0;
@@ -53,7 +56,7 @@ GLuint createShaderFromData(char const* data, GLenum shaderType)
         if (l != 0)
         {
             auto infoLog = std::string{};
-            infoLog.reserve(static_cast<std::size_t>(l));
+            infoLog.resize(static_cast<std::size_t>(l));
 
             glGetShaderInfoLog(shaderId, l, &l, infoLog.data());
 
@@ -77,27 +80,21 @@ GLuint createShaderFromData(char const* data, GLenum shaderType)
 
 bool Shader::loadShaderProgramFromFile(char const* vertexShaderPath, char const* fragmentShaderPath)
 {
-    char const* vertexData = readEntireFile(vertexShaderPath);
-    char const* fragmentData = readEntireFile(fragmentShaderPath);
+    std::string vertexData = readEntireFile(vertexShaderPath);
+    std::string fragmentData = readEntireFile(fragmentShaderPath);
 
-    if (vertexData == nullptr || fragmentData == nullptr)
+    if (vertexData.empty() || fragmentData.empty())
     {
-        delete[] vertexData;
-        delete[] fragmentData;
-
         return false;
     }
 
     bool ret = loadShaderProgramFromData(vertexData, fragmentData);
 
-    delete[] vertexData;
-    delete[] fragmentData;
-
     return ret;
 }
 
 bool Shader::loadShaderProgramFromData(
-    char const* vertexShaderData, char const* fragmentShaderData)
+    std::string const& vertexShaderData, std::string const& fragmentShaderData)
 {
     auto vertexId = createShaderFromData(vertexShaderData, GL_VERTEX_SHADER);
 
@@ -136,7 +133,7 @@ bool Shader::loadShaderProgramFromData(
         if (l != 0)
         {
             auto infoLog = std::string{};
-            infoLog.reserve(static_cast<std::size_t>(l));
+            infoLog.resize(static_cast<std::size_t>(l));
 
             glGetProgramInfoLog(m_id, l, &l, infoLog.data());
 
