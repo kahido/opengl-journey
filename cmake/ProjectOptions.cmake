@@ -1,7 +1,3 @@
-option(BUILD_SHARED_LIBS "Enable compilation of shared libraries" OFF)
-option(ENABLE_IPO "Enable Interprocedural Optimization, aka Link Time Optimization (LTO)" OFF)
-option(ENABLE_PCH "Enable Precompiled Headers" OFF)
-
 include(cmake/Cache.cmake)
 
 # standard compiler warnings
@@ -14,6 +10,8 @@ enable_sanitizers(project_options)
 
 # allow for static analysis options
 include(cmake/StaticAnalyzers.cmake)
+
+option(ENABLE_IPO "Enable Interprocedural Optimization, aka Link Time Optimization (LTO)" OFF)
 
 if(ENABLE_IPO)
   include(CheckIPOSupported)
@@ -31,6 +29,8 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 else()
   message(STATUS "No colored compiler diagnostic set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
 endif()
+
+option(ENABLE_PCH "Enable Precompiled Headers" OFF)
 
 if(ENABLE_PCH)
   # This sets a global PCH parameter, each project will build its own PCH, which is a good idea if any #define's change
