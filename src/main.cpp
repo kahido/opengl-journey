@@ -4,6 +4,10 @@
 // GLFW (include after glad)
 #include <GLFW/glfw3.h>
 
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+
 #include "spdlog/spdlog.h"
 
 #include "shader.h"
@@ -84,7 +88,8 @@ int main()
         return -1;
     }
 
-    spdlog::info("GL v{0}.{1}", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+    spdlog::info("GL_VERSION: {0}", reinterpret_cast<char const*>(glGetString(GL_VERSION)));
+    spdlog::info("GL_SHADING_LANGUAGE_VERSION: {0}", reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
     int32_t flags = 0;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
@@ -95,6 +100,13 @@ int main()
         glDebugMessageCallback(glDebugOutput, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
+
+    ImGui::CreateContext();
+    // Setup Platform/Renderer backends
+    // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
 
     Shader shader;
 
@@ -153,6 +165,17 @@ int main()
         glClearColor(0.2F, 0.3F, 0.3F, 1.0F);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Window");
+        ImGui::Text("Color test");
+        static float color[3] = { 0.5, 0.5, 0.5 };
+        ImGui::ColorPicker3("Color: ", color);
+        ImGui::End();
+
         // draw first triangle
         // glUseProgram(shaderProgram);
 
@@ -178,6 +201,11 @@ int main()
 
         glBindVertexArray(0);
 
+        // Rendering
+        // (Your code clears your framebuffer, renders your other stuff etc.)
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         // glfw: swap buffers and poll IO events (key pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -191,6 +219,11 @@ int main()
     // glDeleteProgram(shaderProgram);
 
     shader.clear();
+
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
