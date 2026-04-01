@@ -13,8 +13,8 @@
 #include "shader.h"
 #include "glDebug.h"
 
-constexpr int const WIDTH = 640;
-constexpr int const HEIGHT = 480;
+constexpr int const WIDTH = 1024;
+constexpr int const HEIGHT = 768;
 constexpr char const* const WINDOW_NAME = "opengl_experiment";
 
 namespace {
@@ -112,9 +112,10 @@ int main()
 
     shader.loadShaderProgramFromFile("resources/myshader.vert", "resources/myshader.frag");
 
-    GLint u_time = shader.getUniformLocation("u_time");
-
     shader.bind();
+
+    // GLint u_time = shader.getUniformLocation("u_time");
+    GLint u_color = shader.getUniformLocation("u_color");
 
     // Vertex Array Object
     uint32_t VAO = 0;
@@ -179,16 +180,18 @@ int main()
         // draw first triangle
         // glUseProgram(shaderProgram);
 
-        float timeValue = static_cast<float>(glfwGetTime()) * 10;
+        /*
+         *  change traingle color using time value
+         */
+
+        // float timeValue = static_cast<float>(glfwGetTime()) * 10;
         // spdlog::info("timeValue {0}", timeValue);
 
-        glUniform1f(u_time, timeValue);
+        // glUniform1f(u_time, timeValue);
 
-        // update uniform color
-        // float timeValue = static_cast<float>(glfwGetTime());
-        // float greenValue = (static_cast<float>(sin(timeValue)) / 2.0F) + 0.5F;
-        // int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-        // glUniform4f(vertexColorLocation, 0.0F, greenValue, 0.0F, 1.0F);
+        shader.bind();
+
+        glUniform3fv(u_color, 1, color);
 
         glBindVertexArray(VAO);
 
