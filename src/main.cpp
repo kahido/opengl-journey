@@ -4,11 +4,15 @@
 // GLFW (include after glad)
 #include <GLFW/glfw3.h>
 
-#include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 
-#include "spdlog/spdlog.h"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp>
+#include <glm/gtx/hash.hpp>
+
+#include <spdlog/spdlog.h>
 
 #include "shader.h"
 #include "glDebug.h"

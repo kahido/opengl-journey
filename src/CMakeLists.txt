@@ -1,4 +1,7 @@
-include_directories(${imgui_SOURCE_DIR})
+include_directories(
+  ${imgui_SOURCE_DIR}
+  ${glm_SOURCE_DIR}
+)
 
 set(imgui_SOURCES
   ${imgui_SOURCE_DIR}/imgui.cpp

@@ -41,3 +41,11 @@ endif()
 # message("---- imgui_ADDED = ${imgui_ADDED}")
 # message("---- imgui_SOURCE_DIR = ${imgui_SOURCE_DIR}")
 # message("---- imgui_BINARY_DIR = ${imgui_BINARY_DIR}")
+
+if(NOT TARGET glm)
+  CPMAddPackage("gh:g-truc/glm#1.0.3")
+endif()
+
+message("---- glm_ADDED = ${glm_ADDED}")
+message("---- glm_SOURCE_DIR = ${glm_SOURCE_DIR}")
+message("---- glm_BINARY_DIR = ${glm_BINARY_DIR}")
