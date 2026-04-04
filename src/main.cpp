@@ -25,7 +25,7 @@ namespace {
 
 void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height)
 {
-    spdlog::info("framebuffer size [{0} x {1}]", width, height);
+    spdlog::info("FRAMEBUFFER: {0} x {1}", width, height);
     glViewport(0, 0, width, height);
 }
 
@@ -179,6 +179,32 @@ int main()
         ImGui::Text("Color test");
         static float color[3] = { 0.5, 0.5, 0.5 };
         ImGui::ColorPicker3("Color: ", color);
+        ImGui::End();
+
+        static float slider = 0;
+        ImGui::SliderFloat("Slider", &slider, 0, 1);
+
+        ImGui::Begin("Another One");
+        ImGui::Text("Another One");
+        ImGui::End();
+
+        static bool b = true;
+        ImGui::Begin("Window");
+        ImGui::Text("Third Window!");
+        ImGui::Separator();
+        ImGui::Checkbox("Check box", &b);
+        ImGui::End();
+
+        ImGui::Begin("Test");
+        for (int i = 0; i < 5; i++)
+        {
+            ImGui::PushID(i);
+
+            ImGui::Button("A");
+            ImGui::SameLine();
+
+            ImGui::PopID();
+        }
         ImGui::End();
 
         // draw first triangle
