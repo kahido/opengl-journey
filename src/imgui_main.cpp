@@ -4,6 +4,14 @@
 // GLFW (include after glad)
 #include <GLFW/glfw3.h>
 
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp>
+#include <glm/gtx/hash.hpp>
+
 #include <spdlog/spdlog.h>
 
 #include "shader.h"
@@ -11,7 +19,7 @@
 
 constexpr int const WIDTH = 1024;
 constexpr int const HEIGHT = 768;
-constexpr char const* const WINDOW_NAME = "opengl_textures";
+constexpr char const* const WINDOW_NAME = "opengl_experiment";
 
 namespace {
 
@@ -63,7 +71,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // GLFW: Create Window
-    // ----------------------------------------------------------------------------------
+    // -------------------
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, WINDOW_NAME, nullptr, nullptr);
     if (window == nullptr)
     {
@@ -75,8 +83,8 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
-    // GLAD: load all OpenGL function pointers
-    // ----------------------------------------------------------------------------------
+    // glad: load all OpenGL function pointers
+    // ---------------------------------------
     int const version = gladLoadGL(glfwGetProcAddress);
     if (version == 0)
     {
@@ -87,9 +95,7 @@ int main()
     spdlog::info("GL_VERSION: {0}", reinterpret_cast<char const*>(glGetString(GL_VERSION)));
     spdlog::info("GL_SHADING_LANGUAGE_VERSION: {0}", reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
-    // GLAD: enable Debug output
-    // ----------------------------------------------------------------------------------
-    int flags = 0;
+    int32_t flags = 0;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
     if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
     {
@@ -99,10 +105,21 @@ int main()
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
 
-    // SHADER: initialize shader
-    // ----------------------------------------------------------------------------------
+    ImGui::CreateContext();
+    // Setup Platform/Renderer backends
+    // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 460 core");
+
+
     Shader shader;
-    shader.loadShaderProgramFromFile("resources/shader.vert", "resources/shader.frag");
+
+    shader.loadShaderProgramFromFile("resources/myshader.vert", "resources/myshader.frag");
+
+    shader.bind();
+
+    // GLint u_time = shader.getUniformLocation("u_time");
+    GLint u_color = shader.getUniformLocation("u_color");
 
     // Vertex Array Object
     uint32_t VAO = 0;
@@ -116,9 +133,8 @@ int main()
     uint32_t EBO = 0;
     glGenBuffers(1, &EBO);
 
-    // 1. bind Vertex Array Object first
-    //    then bind and set vertex buffer(s)
-    //    then configure vertex attributes(s).
+    // 1. bind Vertex Array Object first, then bind and set vertex buffer(s), and then
+    //    configure vertex attributes(s).
     glBindVertexArray(VAO);
 
     // 2. copy our vertices array in a buffer for OpenGL to use
@@ -129,7 +145,7 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    // 4. then set our vertex attributes pointers
+    // 3. then set our vertex attributes pointers
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
 
@@ -150,19 +166,78 @@ int main()
     {
         processInput(window);
 
-        // clear backgroud
+        // render
         glClearColor(0.2F, 0.3F, 0.3F, 1.0F);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Window");
+        ImGui::Text("Color test");
+        static float color[3] = { 0.5, 0.5, 0.5 };
+        ImGui::ColorPicker3("Color: ", color);
+        ImGui::End();
+
+        static float slider = 0;
+        ImGui::SliderFloat("Slider", &slider, 0, 1);
+
+        ImGui::Begin("Another One");
+        ImGui::Text("Another One");
+        ImGui::End();
+
+        static bool b = true;
+        ImGui::Begin("Window");
+        ImGui::Text("Third Window!");
+        ImGui::Separator();
+        ImGui::Checkbox("Check box", &b);
+        ImGui::End();
+
+        ImGui::Begin("Test");
+        for (int i = 0; i < 5; i++)
+        {
+            ImGui::PushID(i);
+
+            ImGui::Button("A");
+            ImGui::SameLine();
+
+            ImGui::PopID();
+        }
+        ImGui::End();
+
+        // draw first triangle
+        // glUseProgram(shaderProgram);
+
+        /*
+         *  change traingle color using time value
+         */
+
+        // float timeValue = static_cast<float>(glfwGetTime()) * 10;
+        // spdlog::info("timeValue {0}", timeValue);
+
+        // glUniform1f(u_time, timeValue);
+
         shader.bind();
+
+        glUniform3fv(u_color, 1, color);
 
         glBindVertexArray(VAO);
 
-        // Draw rectangle
+        // #1 option - Draw Triangle
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // #2 option - Draw 2 Triangles  as a square
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
         glBindVertexArray(0);
+
+        // Rendering
+        // (Your code clears your framebuffer, renders your other stuff etc.)
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // glfw: swap buffers and poll IO events (key pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
@@ -171,14 +246,20 @@ int main()
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteBuffers(1, &EBO);
-    glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    // glDeleteProgram(shaderProgram);
 
     shader.clear();
 
-    // GLFW: terminate, clearing all previously allocated GLFW resources.
-    // ----------------------------------------------------------------------------------
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    // glfw: terminate, clearing all previously allocated GLFW resources.
+    // ------------------------------------------------------------------
     glfwDestroyWindow(window);
     glfwTerminate();
 
