@@ -28,24 +28,50 @@ FetchContent_MakeAvailable(glad)
 glad_add_library(glad_gl_core_43 STATIC REPRODUCIBLE LOADER API gl:core=4.3)
 #target_link_libraries(my_target PRIVATE glad_gl_core_43)
 
-if(NOT TARGET imgui::imgui)
-  CPMAddPackage(
-    NAME
-    imgui
-    VERSION
-    1.92.6
-    GITHUB_REPOSITORY
-    "ocornut/imgui")
+FetchContent_Declare(
+  stb_image
+  GIT_REPOSITORY https://github.com/nothings/stb.git
+  GIT_TAG origin/master
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+)
+
+FetchContent_GetProperties(stb_image)
+if(NOT stb_image)
+  FetchContent_MakeAvailable(stb_image)
 endif()
+
+# add_library(stb_image INTERFACE)
+
+message("---- stb_image_ADDED = ${stb_image_ADDED}")
+message("---- stb_image_SOURCE_DIR = ${stb_image_SOURCE_DIR}")
+message("---- stb_image_BINARY_DIR = ${stb_image_BINARY_DIR}")
+
+# file(
+# COPY
+#   ${${libStbImage}_SOURCE_DIR}/stb_image.h
+# DESTINATION
+#   ${CMAKE_CURRENT_BINARY_DIR}/_deps/installs/${libStbImage}/include/${libStbImage}
+# )
+
+# if(NOT TARGET imgui::imgui)
+#   CPMAddPackage(
+#     NAME
+#     imgui
+#     VERSION
+#     1.92.6
+#     GITHUB_REPOSITORY
+#     "ocornut/imgui")
+# endif()
 
 # message("---- imgui_ADDED = ${imgui_ADDED}")
 # message("---- imgui_SOURCE_DIR = ${imgui_SOURCE_DIR}")
 # message("---- imgui_BINARY_DIR = ${imgui_BINARY_DIR}")
 
-if(NOT TARGET glm)
-  CPMAddPackage("gh:g-truc/glm#1.0.3")
-endif()
+# if(NOT TARGET glm)
+#   CPMAddPackage("gh:g-truc/glm#1.0.3")
+# endif()
 
-message("---- glm_ADDED = ${glm_ADDED}")
-message("---- glm_SOURCE_DIR = ${glm_SOURCE_DIR}")
-message("---- glm_BINARY_DIR = ${glm_BINARY_DIR}")
+# message("---- glm_ADDED = ${glm_ADDED}")
+# message("---- glm_SOURCE_DIR = ${glm_SOURCE_DIR}")
+# message("---- glm_BINARY_DIR = ${glm_BINARY_DIR}")
