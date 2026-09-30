@@ -36,17 +36,17 @@ void processInput(GLFWwindow* window)
 // setup vertex data (and buffer(s)) and configure vertex attributes
 // -----------------------------------------------------------------
 float vertices[] = {
- // positions       colors
- // x y z           r  g  b
-    0.5, 0.5, 0,    1, 0, 0, // vertex 1
-   -0.5, 0.5, 0,    0, 1, 0, // vertex 2
-   -0.5, -0.5, 0,   0, 0, 1, // vertex 3
-    0.5, -0.5, 0,   0, 0, 1, // vertex 4
+ // positions               colors               texture
+ //    x      y     z       r     g     b        s     t
+    0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+    0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+   -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+   -0.5f,  0.5f, 0.0f,    1.0f, 1.0f, 0.0f,   0.0f, 1.0f, // top left
 };
 
 unsigned short indices[] = {
-    0, 1, 2, // first triangle
-    0, 2, 3  // second triangle
+    0, 1, 3, // first triangle
+    1, 2, 3  // second triangle
 };
 
 }
@@ -55,7 +55,7 @@ int main()
 {
     // GLFW: Initialize and configuration
     // ----------------------------------
-    if (glfwInit() == 0)
+    if (glfwInit() == GLFW_FALSE)
     {
         spdlog::error("GLFW Init failed!");
         return -1;
@@ -81,7 +81,7 @@ int main()
     // GLAD: load all OpenGL function pointers
     // ----------------------------------------------------------------------------------
     int const version = gladLoadGL(glfwGetProcAddress);
-    if (version == 0)
+    if (version == GL_FALSE)
     {
         spdlog::error("Failed load GL!");
         return -1;
@@ -108,15 +108,15 @@ int main()
     shader.loadShaderProgramFromFile("resources/shader.vert", "resources/shader.frag");
 
     // Vertex Array Object
-    uint32_t VAO = 0;
+    GLuint VAO = 0;
     glGenVertexArrays(1, &VAO);
 
     // Vertex Buffer Object
-    uint32_t VBO = 0;
+    GLuint VBO = 0;
     glGenBuffers(1, &VBO);
 
     // Element Buffer Object
-    uint32_t EBO = 0;
+    GLuint EBO = 0;
     glGenBuffers(1, &EBO);
 
     // 1. bind Vertex Array Object first
@@ -133,11 +133,14 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // 4. then set our vertex attributes pointers
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO
     // as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
@@ -149,9 +152,10 @@ int main()
 
     // TEXTURE
 
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    unsigned int texture1;
+    glGenTextures(1, &texture1);
+    // glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
 
     // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -163,7 +167,8 @@ int main()
     int width;
     int height;
     int nrChannels;
-    unsigned char *data = stbi_load("resources/container.jpg", &width, &height, &nrChannels, 0);
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data = stbi_load("resources/container.jpg", &width, &height, &nrChannels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -176,16 +181,49 @@ int main()
 
     stbi_image_free(data);
 
+    unsigned int texture2;
+    glGenTextures(1, &texture2);
+    // glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    data = stbi_load("resources/awesomeface.png", &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        spdlog::error("Failed to load texture!");
+    }
+
+    stbi_image_free(data);
+
+    shader.bind();
+    glUniform1i(shader.getUniformLocation("ourTexture1"), 0);
+    glUniform1i(shader.getUniformLocation("ourTexture2"), 1);
 
     // render loop
     // -----------
-    while (glfwWindowShouldClose(window) == 0)
+    while (glfwWindowShouldClose(window) == GL_FALSE)
     {
         processInput(window);
 
         // clear backgroud
         glClearColor(0.2F, 0.3F, 0.3F, 1.0F);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // bind textures and corresponding textures units
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
 
         shader.bind();
 
